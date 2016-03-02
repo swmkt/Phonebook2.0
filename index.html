@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <link href="css/style.css" rel="stylesheet">
+    <title>PhoneBook</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/jquery-ui.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+<!--    <script src="js/jquery-1.12.1.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="js/jquery-browser-plugin.js"></script>-->
+    <script src="http://knockoutjs.com/downloads/knockout-3.2.0.js"></script>
+    <script src="http://knockoutjs.com/js/jquery.validate.js"></script>
+
+    <script src="js/knockout.mapping-latest.js"></script>
+</head>
+
+<body>    
+    <div class="container" class='liveExample'>
+        <button href='#' data-bind='click: $root.addContact, visible: !editMode()' class="btn btn-success">Add contact</button> 
+        
+        <form action='/someServerSideHandler'  data-bind="visible: !editMode()">
+            <p>You have <span data-bind='text: contacts().length'>&nbsp;</span> contact(s)</p>
+            <table class="table table-hover" data-bind='visible: contacts().length > 0'>
+                <thead>
+                    <tr>
+                        <th>Phone</th>
+                        <th>Name</th>
+                        <th>City</th>
+                        <th>Gender</th>
+                        <th>Sign</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody data-bind='foreach: contacts'>
+                    <tr>
+                        <td><input class='' data-bind='value: phone' readonly/></td>
+                        <td><input class='' data-bind='value: name' readonly/></td>
+                        <td><input class='' data-bind='value: city' readonly/></td>
+                        <td><input class='' data-bind='value: gender' readonly/></td>
+                        <td><a href='#' data-bind='click: $root.editContact' class="btn btn-success">Edit</a></td>
+                        <td><a href='#' data-bind='click: $root.removeContact' class="btn btn-success">Delete</a></td>
+                    </tr>
+                </tbody>
+            </table>            
+        </form>
+        
+
+        <div data-bind="visible: editMode">
+            <div class="editContact" data-bind="with: selectedContact" >
+                        <form role="form">
+                            <div class="form-group">
+                                <label for="phone">Phone:</label>
+                                <input type="phone" class="form-control" id="editPhone" placeholder="Enter phone" data-bind='value: phone'>
+                            </div>
+                            <div class="form-group">
+                                <label for="name">Name:</label>
+                                <input type="text" class="form-control" id="editName" placeholder="Enter name" data-bind='value: name'>
+                            </div>
+                            <div class="form-group ui-widget">
+                                <label for="place">Place:</label>
+                                <input type="text" class="form-control" id="editPlace" placeholder="Enter place"  data-bind='value: city'>
+                            </div>
+                            <div class="form-group">
+                                <label>Gender:</label>
+                                <label class="radio-inline"><input type="radio" name="editGender" value="Male" id="Male" data-bind = "checked: gender">Male</label>
+                                <label class="radio-inline"><input type="radio" name="editGender" value="Female" id="Female" data-bind = "checked: gender">Female</label>
+                            </div>
+                            <div class="form-group">
+                                <label for="sign">Sign:</label>
+                                <select class="form-control" id="editSign"  data-bind="options: $root.signOptions, optionsCaption: 'Not selected', value:sign, valueAllowUnset: true">
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="notes">Notes:</label>
+                                <textarea type="text" class="form-control" id="editNotes" placeholder="Enter notes" data-bind='value: notes'></textarea>
+                            </div>
+
+                        </form>
+                <button data-bind='click: $root.saveContact' class="btn btn-success">Save contact</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+    
+</body>
+
+</html>
