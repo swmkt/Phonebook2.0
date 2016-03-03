@@ -12,30 +12,46 @@
 <!--    <script src="js/jquery-1.12.1.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
     <script src="js/jquery-browser-plugin.js"></script>-->
+    <script src="js/Underscore-1.8.3.js"></script>
     <script src="http://knockoutjs.com/downloads/knockout-3.2.0.js"></script>
-    <script src="http://knockoutjs.com/js/jquery.validate.js"></script>
+   <!-- <script src="http://knockoutjs.com/js/jquery.validate.js"></script>-->
 
     <script src="js/knockout.mapping-latest.js"></script>
 </head>
 
 <body>    
-    <div class="container" class='liveExample'>
-        <button href='#' data-bind='click: $root.addContact, visible: !editMode()' class="btn btn-success">Add contact</button> 
-        
+    <div class="container">
+        <button data-bind='click: $root.addContact, visible: !editMode()' class="btn btn-success">Add contact</button>
         <form action='/someServerSideHandler'  data-bind="visible: !editMode()">
             <p>You have <span data-bind='text: contacts().length'>&nbsp;</span> contact(s)</p>
             <table class="table table-hover" data-bind='visible: contacts().length > 0'>
                 <thead>
                     <tr>
-                        <th>Phone</th>
-                        <th>Name</th>
-                        <th>City</th>
-                        <th>Gender</th>
+                        <th>Phone
+                            <button data-bind="click: $root.sortContactsBy('phone', true), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet"></span></button>
+                            <button data-bind="click: $root.sortContactsBy('phone', false), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></button>
+                            <input type="search" placeholder="phoneFilter" class="form-control" data-bind="value : currentPhoneFilter, valueUpdate: 'keyup'"/>
+                        </th>
+                        <th>Name
+                            <button data-bind="click: $root.sortContactsBy('name', true), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet"></span></button>
+                            <button data-bind="click: $root.sortContactsBy('name', false), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></button>
+                            <input type="search" placeholder="nameFilter" class="form-control" data-bind="value : currentNameFilter, valueUpdate: 'keyup'"/>
+                        </th>
+                        <th>City
+                            <button data-bind="click: $root.sortContactsBy('city', true), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet"></span></button>
+                            <button data-bind="click: $root.sortContactsBy('city', false), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></button>
+                            <input type="search" placeholder="cityFilter" class="form-control" data-bind="value : currentCityFilter, valueUpdate: 'keyup'"/>
+                        </th>
+                        <th>Gender
+                            <button data-bind="click: $root.sortContactsBy('gender', true), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet"></span></button>
+                            <button data-bind="click: $root.sortContactsBy('gender', false), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></button>
+                            <input type="search" placeholder="genderFilter" class="form-control" data-bind="value : currentGenderFilter, valueUpdate: 'keyup'"/>
+                        </th>
                         <th>Sign</th>
                         <th>Notes</th>
                     </tr>
                 </thead>
-                <tbody data-bind='foreach: contacts'>
+                <tbody data-bind='foreach: filterContacts'>
                     <tr>
                         <td><input class='' data-bind='value: phone' readonly/></td>
                         <td><input class='' data-bind='value: name' readonly/></td>
