@@ -40,18 +40,19 @@ var ContactViewModel = function (contact){
 
     var regexPhone = /^[+0][0-9]+$/;
     self.contactValid = ko.computed(function() {
-        return (self.phone().length> 2) || (self.phone().match(regexPhone) == null) ||  self.myname().length> 2 || self.myname().length == "" || self.notes().length> 2 ? false : true;
+        return (self.phone().length> 12) || (self.phone().length < 5)  || (self.phone().match(regexPhone) == null) || (self.myname().length> 30) || (self.myname().length < 0) || self.notes().length> 500 ? false : true;
+        //return (self.phone().length> 2) || (self.phone().match(regexPhone) == null) ||  self.myname().length> 2 || self.myname().length == "" || self.notes().length> 2 ? false : true;
     }, self);
 
     self.phoneStatus = ko.computed(function() {
-        return (self.phone().length> 2) || (self.phone().match(regexPhone) == null) ? "red" : "green";
+        return (self.phone().length> 12) || (self.phone().length < 5)  || (self.phone().match(regexPhone) == null) ? "red" : "green";
     }, self);
 
     self.nameStatus = ko.computed(function() {
-        return (self.myname().length> 2) || (self.myname().length < 0) ? "red" : "green";
+        return (self.myname().length> 30) || (self.myname().length < 0) ? "red" : "green";
     }, self);
     self.notesStatus = ko.computed(function() {
-        return self.notes().length> 2 ? "red" : "green";
+        return self.notes().length> 500 ? "red" : "green";
     }, self);
 }
 window.ContactViewModel = ContactViewModel;
@@ -61,12 +62,14 @@ var ContactList = function() {
     var self = this;
     self.contacts = ko.observableArray();
     self.editMode = ko.observable(false);
+    self.importMode = ko.observable(false);
     self.selectedContact = ko.observable();
     self.signOptions = ['Leo', 'Cancer', 'Scorpion'];
     self.currentPhoneFilter = ko.observable("");
     self.currentNameFilter = ko.observable("");
     self.currentCityFilter = ko.observable("");
     self.currentGenderFilter = ko.observable("");
+    self.importText = ko.observable();
 
     self.saveToLocal = function(){
         console.log(self.contacts());
@@ -87,7 +90,6 @@ var ContactList = function() {
     self.loadFromLocal = function(){
         var restoredContacts = JSON.parse(localStorage.getItem('contacts'));
         var contacts = [];
-        var contacts = [];
         for(var i = 0; i < restoredContacts.length; i++){
             var contact = new ContactViewModel(restoredContacts[i]);
             contacts.push(contact);
@@ -97,25 +99,41 @@ var ContactList = function() {
 
     self.loadFromLocal();
 
-
-
-
     self.editContact = function(contact) {
         self.editMode(true);
-        //toDo: edit in localStorage
-        //self.contacts.remove(contact);
-        var contactJS = {};
-        contactJS.phone = contact.phone();
-        contactJS.myname = contact.myname();
-        contactJS.city = contact.city();
-        contactJS.gender = contact.gender();
-        contactJS.sign = contact.sign();
-        contactJS.notes = contact.notes();
-        contactJS.id = contact.id;
-
-        var editContact = new ContactViewModel(contactJS);
+        var editContact = new ContactViewModel(createContact(contact.phone(), contact.myname(),contact.city(),contact.gender(),contact.sign(),contact.notes(),contact.id));
         self.selectedContact(editContact);
         console.log("editedContact   ", self.selectedContact());
+    }
+    function createContact(phone, myname, city, gender, sign, notes, id){
+        var contactJS = {};
+        contactJS.phone = phone;
+        contactJS.myname = myname;
+        contactJS.city = city;
+        contactJS.gender = gender;
+        contactJS.sign = sign;
+        contactJS.notes = notes;
+        contactJS.id = id;
+        return contactJS;
+    }
+    self.importContact = function(){
+        self.importMode(true);
+    }
+    self.saveImport = function(){
+        if(self.importText()) {
+            var contactLines = self.importText().split('\n');
+            for (var i = 0; i < contactLines.length; i++) {
+                if (contactLines[i]) {
+                    var contactData = contactLines[i].split('\t');
+                    var contact = new ContactViewModel(createContact(contactData[0], contactData[1], contactData[2], contactData[3], contactData[4], contactData[5], id));
+                    id++;
+                    self.contacts.push(contact);
+                }
+            }
+            self.saveToLocal();
+            self.loadFromLocal();
+        }
+        self.importMode(false);
     }
     self.addContact = function() {
         var emptyContact = {};
@@ -158,6 +176,9 @@ var ContactList = function() {
         self.saveToLocal();
         self.loadFromLocal();
         self.editMode(false);
+    }
+    self.closeImport = function(){
+        self.importMode(false);
     }
     self.removeContact = function(contact) {
         self.contacts.remove(contact);
@@ -208,9 +229,3 @@ var ContactList = function() {
 };
 
 ko.applyBindings(new ContactList());
-
-
-
-
-// Activate jQuery Validation
-/*$("form").validate({ submitHandler: viewModel.save });*/

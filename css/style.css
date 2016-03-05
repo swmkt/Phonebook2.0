@@ -22,3 +22,11 @@ textarea.red{color: red;}
 input.green{color: green;}
 textarea.green{color: green;}
 input.orange{color: orange;}
+.importContacts{
+
+    width: 100%;
+}
+.importExample{
+    text-align: left;
+    color: goldenrod;
+}
