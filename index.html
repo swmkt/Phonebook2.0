@@ -27,6 +27,7 @@
             <h1>Contacts</h1>
             <button data-bind='click: $root.addContact' class="btn btn-success">Add contact</button>
             <button data-bind='click: $root.importContact' class="btn btn-primary">Import contacts</button>
+            <button data-bind='click: $root.initFakeContacts' class="btn btn-primary">Init fake contacts</button>
             <!--<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#importContactsModal">Import contacts</button>-->
             <form>
                 <p>You have <span data-bind='text: contacts().length'>&nbsp;</span> contact(s)</p>
@@ -59,10 +60,10 @@
                     </thead>
                     <tbody data-bind='foreach: filterContacts'>
                     <tr>
-                        <td><input class='' data-bind='value: phone' readonly/></td>
-                        <td><input class='' data-bind='value: myname' readonly/></td>
-                        <td><input class='' data-bind='value: city' readonly/></td>
-                        <td><input class='' data-bind='value: gender' readonly/></td>
+                        <td><span class='' data-bind='text: phone' /></span></td>
+                        <td><span class='' data-bind='text: myname' /></span></td>
+                        <td><span class='' data-bind='text: city' /></span></td>
+                        <td><span class='' data-bind='text: gender' /></span></td>
                         <td><a href='#' data-bind='click: $root.editContact' class="btn btn-success">Edit</a></td>
                         <td><a href='#' data-bind='click: $root.removeContact' class="btn btn-warning">Delete</a></td>
                     </tr>
@@ -108,53 +109,13 @@
 
             </div>
         </div>
-
-<!--        <div id="importContactsModal" class="modal fade" role="dialog">
-            <div class="modal-dialog">
-                &lt;!&ndash; Modal content&ndash;&gt;
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h4 class="modal-title">Import contacts</h4>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group importContacts">
-                            <textarea class="importContacts" placeholder="Add contacts here"  rows="5" data-bind="value: importText"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button data-bind="click: saveImport" class="btn btn-success">Import</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-
-                        <div class="importExample">
-                            <h4>Import contacts example</h4>
-                            <p>
-                                0888104744	Петър Иванов	Варна	м	Везни	Този телефон ми го даде Симо на пловдиския панаир! <br/>
-                                029204473	Минчо	София	м	Скорпион<br/>
-                                0878663098	Ивайла	Варна	ж	Рак	служебен<br/>
-                                0898226184	Теодор Димитров	Пловдив	м	Козирог	<br/>
-                                032265401	Александър Станимиров	София	м	Телец<br/>
-                                0885328559	Валентина Петрова	София	ж	Козирог	служебен от 2014-та<br/>
-
-                            </p>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>-->
-
         <div data-bind="visible: importMode">
             <h1>Import contacts</h1>
-            <textarea class="importContacts" placeholder="Add contacts here"  rows="5" data-bind="value: importText">
-
-            </textarea>
+            <textarea class="importContacts" placeholder="Add contacts here"  rows="5" data-bind="value: importText"></textarea>
             <button data-bind="click: saveImport" class="btn btn-success">Import</button>
             <button data-bind="click: closeImport" class="btn btn-default">Close</button>
         </div>
     </div>
     <script src="js/script.js"></script>
-    
 </body>
-
 </html>

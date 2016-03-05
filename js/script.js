@@ -20,17 +20,20 @@ var fakeContacts = [
         "notes": "Some notes"}
 ];
 
-//    localStorage.setItem("contacts",  JSON.stringify(fakeContacts));
+
 
 
 var ContactViewModel = function (contact){
     var self = this;
+    //Unique id when create new contact
     if(contact.id == null){
         self.id = id;
         id ++;
-    }else
+    }
+    //Unique id when edit existing contact
+    else
         self.id = contact.id;
-    console.log("contact.phone ", contact.phone, "contact.myname" , contact.myname)
+
     self.phone = ko.observable(contact.phone);
     self.myname = ko.observable(contact.myname);
     self.city = ko.observable(contact.city);
@@ -39,8 +42,10 @@ var ContactViewModel = function (contact){
     self.notes = ko.observable(contact.notes);
 
     var regexPhone = /^[+0][0-9]+$/;
+    //toDo: rules for valid contact depending on other rules
     self.contactValid = ko.computed(function() {
-        return (self.phone().length> 12) || (self.phone().length < 5)  || (self.phone().match(regexPhone) == null) || (self.myname().length> 30) || (self.myname().length < 0) || self.notes().length> 500 ? false : true;
+        return (self.phone().length> 12) || (self.phone().length < 5)  || (self.phone().match(regexPhone) == null) ||
+        (self.myname().length> 30) || (self.myname().length < 0) || (self.notes() && self.notes().length> 500) ? false : true;
         //return (self.phone().length> 2) || (self.phone().match(regexPhone) == null) ||  self.myname().length> 2 || self.myname().length == "" || self.notes().length> 2 ? false : true;
     }, self);
 
@@ -52,7 +57,7 @@ var ContactViewModel = function (contact){
         return (self.myname().length> 30) || (self.myname().length < 0) ? "red" : "green";
     }, self);
     self.notesStatus = ko.computed(function() {
-        return self.notes().length> 500 ? "red" : "green";
+        return self.notes() && self.notes().length> 500 ? "red" : "green";
     }, self);
 }
 window.ContactViewModel = ContactViewModel;
@@ -64,29 +69,44 @@ var ContactList = function() {
     self.editMode = ko.observable(false);
     self.importMode = ko.observable(false);
     self.selectedContact = ko.observable();
-    self.signOptions = ['Leo', 'Cancer', 'Scorpion'];
+    self.signOptions = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagitarrius','Capricorn','Aquarius','Pisces'];
     self.currentPhoneFilter = ko.observable("");
     self.currentNameFilter = ko.observable("");
     self.currentCityFilter = ko.observable("");
     self.currentGenderFilter = ko.observable("");
     self.importText = ko.observable();
 
+    self.initFakeContacts = function (){
+        id = 0;
+        localStorage.setItem("contacts",  JSON.stringify(fakeContacts));
+        self.loadFromLocal();
+    }
     self.saveToLocal = function(){
         console.log(self.contacts());
         var contacts = [];
         for(var i = 0; i< self.contacts().length; i++){
-            var contact = {};
-            contact.phone = self.contacts()[i].phone();
-            contact.myname = self.contacts()[i].myname();
-            contact.city = self.contacts()[i].city();
-            contact.gender = self.contacts()[i].gender();
-            contact.sign = self.contacts()[i].sign();
-            contact.notes = self.contacts()[i].notes();
-            contact.id = self.contacts()[i].id;
-            contacts.push(contact);
+            contacts.push(createContact(self.contacts()[i].phone(), self.contacts()[i].myname(),self.contacts()[i].city(),self.contacts()[i].city(),self.contacts()[i].gender(),
+                self.contacts()[i].sign(), self.contacts()[i].notes(),self.contacts()[i].id));
         }
         localStorage.setItem("contacts",  JSON.stringify(contacts));
     };
+
+/*    self.saveToLocal = function(newContacts){
+        var allContacts = [];
+        var oldContacts = self.loadFromLocal();
+
+        for(var i = 0; i< newContacts.length; i++){
+            allContacts.push(createContact(newContacts[i].phone(), newContacts[i].myname(),newContacts[i].city(),newContacts[i].city(),newContacts[i].gender(),
+                newContacts[i].sign(), newContacts[i].notes(),newContacts[i].id));
+        }
+
+        for(var i = 0; i < oldContacts.length; i++){
+            var contact = new ContactViewModel(oldContacts[i]);
+            allContacts.push(contact);
+        }
+        self.contacts(allContacts);
+    }*/
+
     self.loadFromLocal = function(){
         var restoredContacts = JSON.parse(localStorage.getItem('contacts'));
         var contacts = [];
@@ -95,7 +115,10 @@ var ContactList = function() {
             contacts.push(contact);
         }
         self.contacts(contacts);
+        return restoredContacts;
     };
+
+
 
     self.loadFromLocal();
 
@@ -148,21 +171,18 @@ var ContactList = function() {
         self.editMode(true);
     }
     self.saveContact = function() {
-        //toDo: check unique
         for(var i = 0; i < self.contacts().length; i++){
             console.log("Check unique ", self.contacts()[i].phone(), self.contacts()[i].myname(), self.contacts()[i].id);
-            if(self.contacts()[i].phone() == self.selectedContact().phone() && (self.contacts()[i].id  != self.selectedContact().id))
-            {
-                console.log("Contact with " + self.selectedContact().phone() + " already exists" );
-                return;
-
-            }
-            if(self.contacts()[i].myname() == self.selectedContact().myname() && (self.contacts()[i].id != self.selectedContact().id))
-            {
-                console.log("Contact with " + self.selectedContact().myname() + " already exists");
+            if(self.contacts()[i].phone() == self.selectedContact().phone() && (self.contacts()[i].id  != self.selectedContact().id)) {
+                alert("Contact with " + self.selectedContact().phone() + " already exists" );
+                self.selectedContact().contactValid = false;
                 return;
             }
-
+            if(self.contacts()[i].myname() == self.selectedContact().myname() && (self.contacts()[i].id != self.selectedContact().id)) {
+                alert("Contact with " + self.selectedContact().myname() + " already exists");
+                self.selectedContact().contactValid = false;
+                return;
+            }
         }
         //if contact is valid and unique
         for(var i = 0; i < self.contacts().length; i++)
@@ -216,16 +236,6 @@ var ContactList = function() {
 
         return tempContacts;
     }, ContactList);
-
-    function filterBy(query){
-        if (!query) {
-            return self.contacts();
-        } else {
-            return _.filter(self.contacts(), function(contact){ return contact.phone().toLowerCase().indexOf(query.toLowerCase()) >= 0; });
-        }
-    }
-
-
 };
 
 ko.applyBindings(new ContactList());
