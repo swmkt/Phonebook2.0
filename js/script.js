@@ -1,65 +1,178 @@
+var id = 0;
 var fakeContacts = [
-    { "phone": "1234567",
-        "name": "Test Name",
+    { "phone": "01",
+        "myname": "Test Name",
         "city": "Sofia",
         "gender": "Male",
         "sign": "Leo",
         "notes": "Some notes"},
     {"phone": "0",
-        "name": "Test Name 2",
+        "myname": "Test Name 2",
         "city": "World",
         "gender": "Female",
         "sign": "Cancer",
         "notes": "Some notes"},
     {"phone": "333",
-        "name": "Test Name 2",
+        "myname": "Test Name 2",
         "city": "World",
         "gender": "Female",
         "sign": "Cancer",
         "notes": "Some notes"}
 ];
-var emptyContacts = [];
-localStorage.setItem("contacts", JSON.stringify(fakeContacts));
+
+//    localStorage.setItem("contacts",  JSON.stringify(fakeContacts));
 
 
-var ContactViewModel = function() {
+var ContactViewModel = function (contact){
     var self = this;
-    //ko.mapping.fromJSON(JSON.parse(localStorage.getItem('contacts')), {}, this.contacts);
-    self.contacts = ko.observableArray(fakeContacts);
+    if(contact.id == null){
+        self.id = id;
+        id ++;
+    }else
+        self.id = contact.id;
+    console.log("contact.phone ", contact.phone, "contact.myname" , contact.myname)
+    self.phone = ko.observable(contact.phone);
+    self.myname = ko.observable(contact.myname);
+    self.city = ko.observable(contact.city);
+    self.gender = ko.observable(contact.gender);
+    self.sign = ko.observable(contact.sign);
+    self.notes = ko.observable(contact.notes);
+
+    var regexPhone = /^[+0][0-9]+$/;
+    self.contactValid = ko.computed(function() {
+        return (self.phone().length> 2) || (self.phone().match(regexPhone) == null) ||  self.myname().length> 2 || self.myname().length == "" || self.notes().length> 2 ? false : true;
+    }, self);
+
+    self.phoneStatus = ko.computed(function() {
+        return (self.phone().length> 2) || (self.phone().match(regexPhone) == null) ? "red" : "green";
+    }, self);
+
+    self.nameStatus = ko.computed(function() {
+        return (self.myname().length> 2) || (self.myname().length < 0) ? "red" : "green";
+    }, self);
+    self.notesStatus = ko.computed(function() {
+        return self.notes().length> 2 ? "red" : "green";
+    }, self);
+}
+window.ContactViewModel = ContactViewModel;
+
+var ContactList = function() {
+
+    var self = this;
+    self.contacts = ko.observableArray();
     self.editMode = ko.observable(false);
-    self.selectedContact = ko.observable(); 
+    self.selectedContact = ko.observable();
     self.signOptions = ['Leo', 'Cancer', 'Scorpion'];
     self.currentPhoneFilter = ko.observable("");
     self.currentNameFilter = ko.observable("");
     self.currentCityFilter = ko.observable("");
     self.currentGenderFilter = ko.observable("");
 
+    self.saveToLocal = function(){
+        console.log(self.contacts());
+        var contacts = [];
+        for(var i = 0; i< self.contacts().length; i++){
+            var contact = {};
+            contact.phone = self.contacts()[i].phone();
+            contact.myname = self.contacts()[i].myname();
+            contact.city = self.contacts()[i].city();
+            contact.gender = self.contacts()[i].gender();
+            contact.sign = self.contacts()[i].sign();
+            contact.notes = self.contacts()[i].notes();
+            contact.id = self.contacts()[i].id;
+            contacts.push(contact);
+        }
+        localStorage.setItem("contacts",  JSON.stringify(contacts));
+    };
+    self.loadFromLocal = function(){
+        var restoredContacts = JSON.parse(localStorage.getItem('contacts'));
+        var contacts = [];
+        var contacts = [];
+        for(var i = 0; i < restoredContacts.length; i++){
+            var contact = new ContactViewModel(restoredContacts[i]);
+            contacts.push(contact);
+        }
+        self.contacts(contacts);
+    };
+
+    self.loadFromLocal();
+
+
+
+
     self.editContact = function(contact) {
         self.editMode(true);
-        self.contacts.remove(contact);
-        self.selectedContact(contact);
+        //toDo: edit in localStorage
+        //self.contacts.remove(contact);
+        var contactJS = {};
+        contactJS.phone = contact.phone();
+        contactJS.myname = contact.myname();
+        contactJS.city = contact.city();
+        contactJS.gender = contact.gender();
+        contactJS.sign = contact.sign();
+        contactJS.notes = contact.notes();
+        contactJS.id = contact.id;
+
+        var editContact = new ContactViewModel(contactJS);
+        self.selectedContact(editContact);
+        console.log("editedContact   ", self.selectedContact());
     }
-    self.addContact = function() {       
-        contact = { phone : ko.observable("1"), name:ko.observable(""), city:ko.observable(""),gender:ko.observable(null),sign:ko.observable(null),notes:ko.observable("")};
+    self.addContact = function() {
+        var emptyContact = {};
+        emptyContact.phone = "";
+        emptyContact.myname = "";
+        emptyContact.city = "";
+        emptyContact.gender = null;
+        emptyContact.sign = null;
+        emptyContact.notes = "";
+        contact = new ContactViewModel(emptyContact);
         self.selectedContact(contact);
         self.editMode(true);
     }
-    self.saveContact = function() {   
+    self.saveContact = function() {
+        //toDo: check unique
+        for(var i = 0; i < self.contacts().length; i++){
+            console.log("Check unique ", self.contacts()[i].phone(), self.contacts()[i].myname(), self.contacts()[i].id);
+            if(self.contacts()[i].phone() == self.selectedContact().phone() && (self.contacts()[i].id  != self.selectedContact().id))
+            {
+                console.log("Contact with " + self.selectedContact().phone() + " already exists" );
+                return;
+
+            }
+            if(self.contacts()[i].myname() == self.selectedContact().myname() && (self.contacts()[i].id != self.selectedContact().id))
+            {
+                console.log("Contact with " + self.selectedContact().myname() + " already exists");
+                return;
+            }
+
+        }
+        //if contact is valid and unique
+        for(var i = 0; i < self.contacts().length; i++)
+            if(self.contacts()[i].id == self.selectedContact().id) {
+                self.editMode(false);
+                //delete from
+                self.contacts().splice(i,1);
+            }
+        //if contact with id was not found in existing contacts, then add it
         self.contacts.push(self.selectedContact());
+        self.saveToLocal();
+        self.loadFromLocal();
         self.editMode(false);
-    }    
+    }
     self.removeContact = function(contact) {
         self.contacts.remove(contact);
+        self.saveToLocal();
     };
     self.sortContactsBy = function()  {
         self.contacts.sort(function(left, right) { return left.phone == right.phone ? 0 : (left.phone < right.phone ? -1 : 1) });
     };
     self.sortContactsBy = function(fieldName, ascending)  {
+        console.log("Let the sort begin ", self.contacts());
         self.contacts.sort(function(a, b) {
-            if (a[fieldName] > b[fieldName]) {
+            if (a[fieldName]() > b[fieldName]()) {
                 return ascending ? +1 : -1;
             }
-            if (a[fieldName] < b[fieldName]) {
+            if (a[fieldName]() < b[fieldName]()) {
                 return ascending ? -1 : +1;
             }
             return 0;
@@ -68,31 +181,35 @@ var ContactViewModel = function() {
     self.filterContacts = ko.computed(function() {
         var tempContacts = self.contacts();
         if (self.currentPhoneFilter()) {
-            tempContacts = _.filter(self.contacts(), function(contact){ return contact.phone.toLowerCase().indexOf(self.currentPhoneFilter().toLowerCase()) >= 0; });
+            tempContacts = _.filter(self.contacts(), function(contact){ return contact.phone().toLowerCase().indexOf(self.currentPhoneFilter().toLowerCase()) >= 0; });
         }
         if (self.currentNameFilter()) {
-            tempContacts = _.filter(tempContacts, function(contact){ return contact.name.toLowerCase().indexOf(self.currentNameFilter().toLowerCase()) >= 0; });
+            tempContacts = _.filter(tempContacts, function(contact){ return contact.myname().toLowerCase().indexOf(self.currentNameFilter().toLowerCase()) >= 0; });
         }
         if (self.currentCityFilter()) {
-            tempContacts = _.filter(tempContacts, function(contact){ return contact.city.toLowerCase().indexOf(self.currentCityFilter().toLowerCase()) >= 0; });
+            tempContacts = _.filter(tempContacts, function(contact){ return contact.city().toLowerCase().indexOf(self.currentCityFilter().toLowerCase()) >= 0; });
         }
         if (self.currentGenderFilter()) {
-            tempContacts = _.filter(tempContacts, function(contact){ return contact.gender.toLowerCase().indexOf(self.currentGenderFilter().toLowerCase()) >= 0; });
+            tempContacts = _.filter(tempContacts, function(contact){ return contact.gender().toLowerCase().indexOf(self.currentGenderFilter().toLowerCase()) >= 0; });
         }
 
         return tempContacts;
-    }, ContactViewModel);
+    }, ContactList);
 
     function filterBy(query){
         if (!query) {
             return self.contacts();
         } else {
-            return _.filter(self.contacts(), function(contact){ return contact.phone.toLowerCase().indexOf(query.toLowerCase()) >= 0; });
+            return _.filter(self.contacts(), function(contact){ return contact.phone().toLowerCase().indexOf(query.toLowerCase()) >= 0; });
         }
     }
+
+
 };
 
-ko.applyBindings(new ContactViewModel());
+ko.applyBindings(new ContactList());
+
+
 
 
 // Activate jQuery Validation

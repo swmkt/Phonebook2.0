@@ -15,3 +15,10 @@ tr { vertical-align: top; }
 .liveExample th { font-weight: bold; }
 
 li { list-style-type: disc; margin-left: 20px; }
+
+
+input.red{color: red;}
+textarea.red{color: red;}
+input.green{color: green;}
+textarea.green{color: green;}
+input.orange{color: orange;}

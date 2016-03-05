@@ -9,11 +9,12 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/jquery-ui.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
-<!--    <script src="js/jquery-1.12.1.min.js"></script>
+    <script src="js/jquery-1.12.1.min.js"></script>
+
     <script src="js/jquery-ui.min.js"></script>
-    <script src="js/jquery-browser-plugin.js"></script>-->
     <script src="js/Underscore-1.8.3.js"></script>
     <script src="http://knockoutjs.com/downloads/knockout-3.2.0.js"></script>
+    <!--<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.15.0/jquery.validate.min.js"></script>-->
    <!-- <script src="http://knockoutjs.com/js/jquery.validate.js"></script>-->
 
     <script src="js/knockout.mapping-latest.js"></script>
@@ -22,7 +23,7 @@
 <body>    
     <div class="container">
         <button data-bind='click: $root.addContact, visible: !editMode()' class="btn btn-success">Add contact</button>
-        <form action='/someServerSideHandler'  data-bind="visible: !editMode()">
+        <form  data-bind="visible: !editMode()">
             <p>You have <span data-bind='text: contacts().length'>&nbsp;</span> contact(s)</p>
             <table class="table table-hover" data-bind='visible: contacts().length > 0'>
                 <thead>
@@ -33,8 +34,8 @@
                             <input type="search" placeholder="phoneFilter" class="form-control" data-bind="value : currentPhoneFilter, valueUpdate: 'keyup'"/>
                         </th>
                         <th>Name
-                            <button data-bind="click: $root.sortContactsBy('name', true), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet"></span></button>
-                            <button data-bind="click: $root.sortContactsBy('name', false), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></button>
+                            <button data-bind="click: $root.sortContactsBy('myname', true), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet"></span></button>
+                            <button data-bind="click: $root.sortContactsBy('myname', false), enable: contacts().length > 1" type="button" class="btn-link"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></button>
                             <input type="search" placeholder="nameFilter" class="form-control" data-bind="value : currentNameFilter, valueUpdate: 'keyup'"/>
                         </th>
                         <th>City
@@ -54,7 +55,7 @@
                 <tbody data-bind='foreach: filterContacts'>
                     <tr>
                         <td><input class='' data-bind='value: phone' readonly/></td>
-                        <td><input class='' data-bind='value: name' readonly/></td>
+                        <td><input class='' data-bind='value: myname' readonly/></td>
                         <td><input class='' data-bind='value: city' readonly/></td>
                         <td><input class='' data-bind='value: gender' readonly/></td>
                         <td><a href='#' data-bind='click: $root.editContact' class="btn btn-success">Edit</a></td>
@@ -67,18 +68,18 @@
 
         <div data-bind="visible: editMode">
             <div class="editContact" data-bind="with: selectedContact" >
-                        <form role="form">
+                        <form role="form" id="editContactForm">
                             <div class="form-group">
                                 <label for="phone">Phone:</label>
-                                <input type="phone" class="form-control" id="editPhone" placeholder="Enter phone" data-bind='value: phone'>
+                                <input type="phone" class="form-control" id="editPhone" placeholder="Enter phone" data-bind="value: phone, css: phoneStatus, valueUpdate: 'keyup'" minlength="2" >
                             </div>
                             <div class="form-group">
                                 <label for="name">Name:</label>
-                                <input type="text" class="form-control" id="editName" placeholder="Enter name" data-bind='value: name'>
+                                <input type="text" class="form-control" id="editName" placeholder="Enter name" data-bind="value: myname, css: nameStatus, valueUpdate: 'keyup'">
                             </div>
                             <div class="form-group ui-widget">
                                 <label for="place">Place:</label>
-                                <input type="text" class="form-control" id="editPlace" placeholder="Enter place"  data-bind='value: city'>
+                                <input type="text" class="form-control" id="editPlace" placeholder="Enter place"  data-bind="value: city">
                             </div>
                             <div class="form-group">
                                 <label>Gender:</label>
@@ -92,11 +93,11 @@
                             </div>
                             <div class="form-group">
                                 <label for="notes">Notes:</label>
-                                <textarea type="text" class="form-control" id="editNotes" placeholder="Enter notes" data-bind='value: notes'></textarea>
+                                <textarea type="text" class="form-control" id="editNotes" placeholder="Enter notes" data-bind="value: notes, css: notesStatus, valueUpdate: 'keyup'"></textarea>
                             </div>
-
+                            <button data-bind='click: $root.saveContact, enable: contactValid' class="btn btn-success">Save contact</button><!-- && nameStatus && notesStatus-->
                         </form>
-                <button data-bind='click: $root.saveContact' class="btn btn-success">Save contact</button>
+
             </div>
         </div>
     </div>
