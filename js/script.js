@@ -5,19 +5,22 @@ var fakeContacts = [
         "city": "Sofia",
         "gender": "Male",
         "sign": "Leo",
-        "notes": "Some notes"},
+        "notes": "Some notes",
+        "id": "0"},
     {"phone": "0",
         "myname": "Test Name 2",
         "city": "World",
         "gender": "Female",
         "sign": "Cancer",
-        "notes": "Some notes"},
+        "notes": "Some notes",
+        "id": "1"},
     {"phone": "333",
         "myname": "Test Name 2",
         "city": "World",
         "gender": "Female",
         "sign": "Cancer",
-        "notes": "Some notes"}
+        "notes": "Some notes",
+        "id": "2"}
 ];
 
 
@@ -77,7 +80,7 @@ var ContactList = function() {
     self.importText = ko.observable();
 
     self.initFakeContacts = function (){
-        id = 0;
+        id = 3;
         localStorage.setItem("contacts",  JSON.stringify(fakeContacts));
         self.loadFromLocal();
     }
@@ -91,21 +94,32 @@ var ContactList = function() {
         localStorage.setItem("contacts",  JSON.stringify(contacts));
     };
 
-/*    self.saveToLocal = function(newContacts){
-        var allContacts = [];
-        var oldContacts = self.loadFromLocal();
-
+    //load JSON from localstorage, merge new contacts to localStorageJSON and update view
+    self.saveToLocal = function(newContacts){
+        var restoredContacts = JSON.parse(localStorage.getItem('contacts'));
         for(var i = 0; i< newContacts.length; i++){
-            allContacts.push(createContact(newContacts[i].phone(), newContacts[i].myname(),newContacts[i].city(),newContacts[i].city(),newContacts[i].gender(),
-                newContacts[i].sign(), newContacts[i].notes(),newContacts[i].id));
+            restoredContacts.push(newContacts[i]);
         }
+        localStorage.setItem("contacts",  JSON.stringify(restoredContacts));
+    }
+    self.saveToLocalContact = function(newContact){
+        var restoredContacts = JSON.parse(localStorage.getItem('contacts'));
+        //delete if contact exist and rewrite it
+        for(var j = 0; j < restoredContacts.length; j++)
+            if(restoredContacts[j].id == newContact.id)
+                restoredContacts.splice(j, 1);
+        restoredContacts.push(newContact);
+        localStorage.setItem("contacts",  JSON.stringify(restoredContacts));
+    }
 
-        for(var i = 0; i < oldContacts.length; i++){
-            var contact = new ContactViewModel(oldContacts[i]);
-            allContacts.push(contact);
+    self.removeFromLocal = function(id){
+        var restoredContacts = JSON.parse(localStorage.getItem('contacts'));
+        for(var i = 0; i< restoredContacts.length; i++){
+            if(restoredContacts[i].id == id)
+                restoredContacts.splice(i, 1);
         }
-        self.contacts(allContacts);
-    }*/
+        localStorage.setItem("contacts",  JSON.stringify(restoredContacts));
+    }
 
     self.loadFromLocal = function(){
         var restoredContacts = JSON.parse(localStorage.getItem('contacts'));
@@ -115,7 +129,6 @@ var ContactList = function() {
             contacts.push(contact);
         }
         self.contacts(contacts);
-        return restoredContacts;
     };
 
 
@@ -143,17 +156,18 @@ var ContactList = function() {
         self.importMode(true);
     }
     self.saveImport = function(){
+        var importedContacts = [];
         if(self.importText()) {
             var contactLines = self.importText().split('\n');
             for (var i = 0; i < contactLines.length; i++) {
                 if (contactLines[i]) {
                     var contactData = contactLines[i].split('\t');
-                    var contact = new ContactViewModel(createContact(contactData[0], contactData[1], contactData[2], contactData[3], contactData[4], contactData[5], id));
+                    var contact = createContact(contactData[0], contactData[1], contactData[2], contactData[3], contactData[4], contactData[5], id);
                     id++;
-                    self.contacts.push(contact);
+                    importedContacts.push(contact);
                 }
             }
-            self.saveToLocal();
+            self.saveToLocal(importedContacts);
             self.loadFromLocal();
         }
         self.importMode(false);
@@ -192,8 +206,8 @@ var ContactList = function() {
                 self.contacts().splice(i,1);
             }
         //if contact with id was not found in existing contacts, then add it
-        self.contacts.push(self.selectedContact());
-        self.saveToLocal();
+        var newContact = createContact(self.selectedContact().phone(), self.selectedContact().myname(),self.selectedContact().city(),self.selectedContact().gender(),self.selectedContact().sign(),self.selectedContact().notes(),self.selectedContact().id);
+        self.saveToLocalContact(newContact);
         self.loadFromLocal();
         self.editMode(false);
     }
@@ -201,8 +215,8 @@ var ContactList = function() {
         self.importMode(false);
     }
     self.removeContact = function(contact) {
-        self.contacts.remove(contact);
-        self.saveToLocal();
+        self.removeFromLocal(contact.id);
+        self.loadFromLocal();
     };
     self.sortContactsBy = function()  {
         self.contacts.sort(function(left, right) { return left.phone == right.phone ? 0 : (left.phone < right.phone ? -1 : 1) });
