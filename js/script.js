@@ -22,9 +22,8 @@ var fakeContacts = [
         "notes": "Some notes",
         "id": "2"}
 ];
-
-
-
+var emptyContacts = [];
+localStorage.setItem("contacts",  JSON.stringify(emptyContacts));
 
 var ContactViewModel = function (contact){
     var self = this;
@@ -49,7 +48,6 @@ var ContactViewModel = function (contact){
     self.contactValid = ko.computed(function() {
         return (self.phone().length> 12) || (self.phone().length < 5)  || (self.phone().match(regexPhone) == null) ||
         (self.myname().length> 30) || (self.myname().length < 0) || (self.notes() && self.notes().length> 500) ? false : true;
-        //return (self.phone().length> 2) || (self.phone().match(regexPhone) == null) ||  self.myname().length> 2 || self.myname().length == "" || self.notes().length> 2 ? false : true;
     }, self);
 
     self.phoneStatus = ko.computed(function() {
@@ -62,8 +60,11 @@ var ContactViewModel = function (contact){
     self.notesStatus = ko.computed(function() {
         return self.notes() && self.notes().length> 500 ? "red" : "green";
     }, self);
+
+
 }
 window.ContactViewModel = ContactViewModel;
+
 
 var ContactList = function() {
 
@@ -94,6 +95,8 @@ var ContactList = function() {
         localStorage.setItem("contacts",  JSON.stringify(contacts));
     };
 
+    //sammy
+    location.hash = "contacts";
     //load JSON from localstorage, merge new contacts to localStorageJSON and update view
     self.saveToLocal = function(newContacts){
         var restoredContacts = JSON.parse(localStorage.getItem('contacts'));
@@ -136,7 +139,9 @@ var ContactList = function() {
     self.loadFromLocal();
 
     self.editContact = function(contact) {
-        self.editMode(true);
+        //sammy
+        location.hash = "contacts/" + contact.id;
+
         var editContact = new ContactViewModel(createContact(contact.phone(), contact.myname(),contact.city(),contact.gender(),contact.sign(),contact.notes(),contact.id));
         self.selectedContact(editContact);
         console.log("editedContact   ", self.selectedContact());
@@ -152,8 +157,9 @@ var ContactList = function() {
         contactJS.id = id;
         return contactJS;
     }
-    self.importContact = function(){
-        self.importMode(true);
+        self.importContact = function(){
+        //sammy
+        location.hash = "import";
     }
     self.saveImport = function(){
         var importedContacts = [];
@@ -170,9 +176,11 @@ var ContactList = function() {
             self.saveToLocal(importedContacts);
             self.loadFromLocal();
         }
-        self.importMode(false);
+        location.hash = "contacts";
     }
     self.addContact = function() {
+
+
         var emptyContact = {};
         emptyContact.phone = "";
         emptyContact.myname = "";
@@ -182,7 +190,8 @@ var ContactList = function() {
         emptyContact.notes = "";
         contact = new ContactViewModel(emptyContact);
         self.selectedContact(contact);
-        self.editMode(true);
+        //sammy
+        location.hash = "contacts/" + contact.id;
     }
     self.saveContact = function() {
         for(var i = 0; i < self.contacts().length; i++){
@@ -208,11 +217,13 @@ var ContactList = function() {
         //if contact with id was not found in existing contacts, then add it
         var newContact = createContact(self.selectedContact().phone(), self.selectedContact().myname(),self.selectedContact().city(),self.selectedContact().gender(),self.selectedContact().sign(),self.selectedContact().notes(),self.selectedContact().id);
         self.saveToLocalContact(newContact);
-        self.loadFromLocal();
-        self.editMode(false);
+        location.hash = "contacts";
     }
+    self.closeSaveContact = function(){
+        location.hash = "contacts";
+    };
     self.closeImport = function(){
-        self.importMode(false);
+        location.hash = "contacts";
     }
     self.removeContact = function(contact) {
         self.removeFromLocal(contact.id);
@@ -250,6 +261,27 @@ var ContactList = function() {
 
         return tempContacts;
     }, ContactList);
+
+    Sammy(function() {
+        this.get('#contacts/:contactId', function() {
+            console.log("hi");
+            self.editMode(true);
+        });
+
+        this.get('/#import', function(context) {
+            self.editMode(false);
+            self.importMode(true);
+         });
+        this.get('#contacts', function(context) {
+            self.loadFromLocal();
+            self.editMode(false);
+            self.importMode(false);
+        });
+
+        this.get('#/', function(context) {
+            context.redirect('get', '#contacts')
+        });
+    }).run();
 };
 
 ko.applyBindings(new ContactList());

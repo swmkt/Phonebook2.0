@@ -15,6 +15,7 @@
     <script src="js/Underscore-1.8.3.js"></script>
     <script src="http://knockoutjs.com/downloads/knockout-3.2.0.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/sammy.js"></script>
     <!--<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.15.0/jquery.validate.min.js"></script>-->
    <!-- <script src="http://knockoutjs.com/js/jquery.validate.js"></script>-->
 
@@ -23,12 +24,11 @@
 
 <body>    
     <div class="container">
-        <div class="mainPage"  data-bind="visible: !editMode()">
+        <div class="mainPage"  data-bind="visible: !editMode() && !importMode()">
             <h1>Contacts</h1>
             <button data-bind='click: $root.addContact' class="btn btn-success">Add contact</button>
             <button data-bind='click: $root.importContact' class="btn btn-primary">Import contacts</button>
             <button data-bind='click: $root.initFakeContacts' class="btn btn-primary">Init fake contacts</button>
-            <!--<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#importContactsModal">Import contacts</button>-->
             <form>
                 <p>You have <span data-bind='text: contacts().length'>&nbsp;</span> contact(s)</p>
                 <table class="table table-hover" data-bind='visible: contacts().length > 0'>
@@ -104,7 +104,8 @@
                                 <label for="editNotes">Notes:</label>
                                 <textarea type="text" class="form-control" id="editNotes" placeholder="Enter notes" data-bind="value: notes, css: notesStatus, valueUpdate: 'keyup'"></textarea>
                             </div>
-                            <button data-bind='click: $root.saveContact, enable: contactValid' class="btn btn-success">Save contact</button><!-- && nameStatus && notesStatus-->
+                            <button data-bind='click: $root.saveContact, enable: contactValid' class="btn btn-success">Save contact</button>
+                            <button data-bind='click: $root.closeSaveContact' class="btn btn-success">Cancel</button>
                         </form>
 
             </div>
